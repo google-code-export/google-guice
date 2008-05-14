@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.io.Serializable;
 
 /**
  * @author crazybob@google.com (Bob Lee)
@@ -246,4 +247,24 @@ public class BindingTest extends TestCase {
           "Please use a concrete type instead of java.lang.Runnable"));
     }
   }
+
+  public void testInstanceInjectionUsesAggregateErrorMessages() {
+    try {
+      Guice.createInjector(new AbstractModule() {
+        @Override protected void configure() {
+          bind(C.class).toInstance(new C());
+          bind(D.class).toInstance(new D());
+        }
+      });
+      fail();
+    } catch (CreationException expected) {
+      assertTrue(expected.getMessage().contains("NotInjectableOne"));
+      assertTrue(expected.getMessage().contains("NotInjectableTwo"));
+    }
+  }
+
+  static class C { @Inject NotInjectableOne e; }
+  static class D { @Inject NotInjectableTwo f; }
+  interface NotInjectableOne {}
+  interface NotInjectableTwo {}
 }
