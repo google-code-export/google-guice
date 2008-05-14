@@ -177,7 +177,7 @@ class ProxyFactory implements ConstructionProxyFactory {
       }
 
       public List<Parameter<?>> getParameters() {
-        return Parameter.forConstructor(errorHandler, fastConstructor.getJavaConstructor());
+        return Parameter.forConstructor(errorHandler, standardConstructor);
       }
 
       public Member getMember() {
