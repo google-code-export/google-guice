@@ -63,8 +63,31 @@ public class ErrorMessagesTest extends TestCase {
     }
   }
 
-  static abstract class AbstractClass {
+  static abstract class AbstractClass implements NotConcrete {
     @Inject AbstractClass() { }
+  }
+
+  @ImplementedBy(AbstractClass.class)
+  interface NotConcrete {}
+
+  public static void testInterfaceBoundToAbstractClass() {
+    try {
+      Guice.createInjector(new AbstractModule() {
+        @Override public void configure() {
+          bind(NotConcrete.class).to(AbstractClass.class);
+        }
+      });
+      fail();
+    } catch (CreationException e) {
+      assertTrue(e.getMessage().contains("Injecting into abstract types is not supported."));
+    }
+
+    try {
+      Guice.createInjector().getInstance(NotConcrete.class);
+      fail();
+    } catch (ConfigurationException e) {
+      assertTrue(e.getMessage().contains("Injecting into abstract types is not supported."));
+    }
   }
 
   // TODO(kevinb): many many more
