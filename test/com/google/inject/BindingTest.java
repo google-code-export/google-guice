@@ -230,4 +230,20 @@ public class BindingTest extends TestCase {
       return next.getAndIncrement();
     }
   }
+
+  public void testInjectingPreexistingInstanceExceptionsThrown() {
+    try {
+      Guice.createInjector(new AbstractModule() {
+        @Override protected void configure() {
+          bind(Object.class).toInstance(new Object() {
+            @Inject Runnable uninjectable;
+          });
+        }
+      });
+      fail();
+    } catch (CreationException expected) {
+      assertTrue(expected.getMessage().contains(
+          "Please use a concrete type instead of java.lang.Runnable"));
+    }
+  }
 }
