@@ -23,8 +23,10 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * Matcher implementations. Supports matching classes and methods.
@@ -393,6 +395,49 @@ public class Matchers {
 
     @Override public String toString() {
       return "returns(" + returnType + ")";
+    }
+
+    private static final long serialVersionUID = 0;
+  }
+
+  /**
+   * Returns a matcher which matches a method of identical signature.
+   */
+  public static Matcher<Method> withSignature(final Method method) {
+    return new WithSignature(method);
+  }
+
+  private static class WithSignature extends AbstractMatcher<Method> {
+    private final String name;
+    private final Class<?>[] args;
+    private WithSignature(Method method) {
+      this.name = method.getName();
+      this.args = method.getParameterTypes();
+    }
+
+    public boolean matches(Method method) {
+      return name.equals(method.getName()) && Arrays.equals(args, method.getParameterTypes());
+    }
+
+    @Override public boolean equals(Object other) {
+      if (!(other instanceof WithSignature))
+        return false;
+      WithSignature that = (WithSignature) other;
+
+      return this.name.equals(that.name) && Arrays.equals(args, that.args);
+    }
+
+    @Override public int hashCode() {
+      return 37 * name.hashCode() * Arrays.hashCode(args);
+    }
+
+    @Override public String toString() {
+      StringBuilder builder = new StringBuilder();
+      for (Class<?> arg : args) {
+        builder.append(arg.getSimpleName()).append(",");
+      }
+      builder.deleteCharAt(builder.length() - 1);
+      return "withSignature(" + name + "[" + builder + "])";
     }
 
     private static final long serialVersionUID = 0;

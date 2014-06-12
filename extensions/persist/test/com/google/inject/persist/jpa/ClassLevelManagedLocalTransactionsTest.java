@@ -157,6 +157,10 @@ public class ClassLevelManagedLocalTransactionsTest extends TestCase {
       session.persist(entity);
     }
 
+    @Override public int hashCode() {
+      assertFalse(session.getTransaction().isActive());
+      return 123;
+    }
   }
 
   @Transactional

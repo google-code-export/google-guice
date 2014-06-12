@@ -16,11 +16,15 @@
 
 package com.google.inject.persist;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.matcher.Matcher;
 import static com.google.inject.matcher.Matchers.annotatedWith;
 import static com.google.inject.matcher.Matchers.any;
-
-import com.google.inject.AbstractModule;
-
+import static com.google.inject.matcher.Matchers.not;
+import static com.google.inject.matcher.Matchers.withSignature;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import org.aopalliance.intercept.MethodInterceptor;
 
 /**
@@ -39,9 +43,15 @@ public abstract class PersistModule extends AbstractModule {
     requireBinding(UnitOfWork.class);
     /*if[AOP]*/
     // wrapping in an if[AOP] just to allow this to compile in NO_AOP -- it won't be used
-    
+
+    List<Method> methods = Arrays.asList(Object.class.getMethods());
+    Matcher<Method> jloMethods = withSignature(methods.get(0));
+    for (Method method : methods.subList(1, methods.size())) {
+      jloMethods.and(withSignature(method));
+    }
     // class-level @Transacational
-    bindInterceptor(annotatedWith(Transactional.class), any(), getTransactionInterceptor());
+    bindInterceptor(annotatedWith(Transactional.class), not(jloMethods),
+        getTransactionInterceptor());
     // method-level @Transacational
     bindInterceptor(any(), annotatedWith(Transactional.class), getTransactionInterceptor());
     /*end[AOP]*/
